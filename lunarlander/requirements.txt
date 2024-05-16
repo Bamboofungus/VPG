@@ -1,0 +1,17 @@
+absl-py==2.1.0
+box2d-py==2.3.5
+cloudpickle==3.0.0
+Farama-Notifications==0.0.4
+grpcio==1.62.1
+gymnasium==0.29.1
+Markdown==3.6
+MarkupSafe==2.1.5
+numpy==1.26.4
+protobuf==5.26.0
+pygame==2.5.2
+six==1.16.0
+swig==4.2.1
+tensorboard==2.16.2
+tensorboard-data-server==0.7.2
+typing_extensions==4.10.0
+Werkzeug==3.0.1
