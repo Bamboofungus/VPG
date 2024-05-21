@@ -1,12 +1,13 @@
 # Vanilla Policy Gradient :robot:
+## Introduction
+
+A *relatively* simple implementation of Vanilla policy gradients from https://spinningup.openai.com/en/latest/algorithms/vpg.html
+trained on Gymnasium's [Lunar Lander](https://gymnasium.farama.org/environments/box2d/lunar_lander).
+
 <div align="center">
   <img src="https://github.com/Bamboofungus/VPG/assets/40710895/96c3639c-cc39-4548-b083-08b30f823ac7" alt="VPG_Lunarlander_9500">
 </div>
 
-## Introduction
-
-A *relatively* simple implementation of Vanilla policy gradients from https://spinningup.openai.com/en/latest/algorithms/vpg.html
-trained on Gymnasium's [Lunar Lander](https://gymnasium.farama.org/environments/box2d/lunar_lander)
 
 In Lunar Lander, an agent tries to land a spacecraft inside the goal (denoted by the flags) but gets penalized for each 
 timestep it fires it's thrusters or if it crashes into the moon's surface. To add a bit of randomness, the spacecraft is already moving
