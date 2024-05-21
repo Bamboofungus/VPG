@@ -123,7 +123,13 @@ class PolicyNN(nn.Module):
     """
 
     def __init__(
-        self, input_size=8, hidden_size=256, output_size=4, lr=1e-4, epsilon=0.05
+        self,
+        input_size=8,
+        hidden_size=256,
+        output_size=4,
+        lr=1e-4,
+        epsilon=0.05,
+        ent_coeff=0.01,
     ):
         super(PolicyNN, self).__init__()
         self.network = nn.Sequential(
@@ -133,6 +139,7 @@ class PolicyNN(nn.Module):
             nn.Softmax(dim=-1),  # Normalize probabilties to sum to one
         )
         self.epsilon = epsilon
+        self.ent_coeff = ent_coeff
         self.optimizer = Adam(self.parameters(), lr)
 
     def forward(self, x):
@@ -144,7 +151,7 @@ class PolicyNN(nn.Module):
     def act(self, observation) -> Tuple[Number, float]:
         with torch.no_grad():
             action_dist = self.forward(observation)
-            if np.random.rand() < self.epsilon:
+            if self.training and np.random.rand() < self.epsilon:
                 action = torch.tensor(np.random.randint(0, 3)).to(device)
             else:
                 action = action_dist.sample()
@@ -160,7 +167,10 @@ class PolicyNN(nn.Module):
         policy_metadata = dict(kl=approx_kl, ent=ent)
 
         # important: negate this loss since it's meant for gradient ascent
-        return -(log_probs * advantages).mean(), policy_metadata
+        return (
+            -(log_probs * advantages).mean() + (ent * self.ent_coeff),
+            policy_metadata,
+        )
 
 
 class ValueNN(nn.Module):
@@ -188,9 +198,7 @@ class ValueNN(nn.Module):
 
 @hydra.main(config_path="config", config_name="vpg")
 def train(hyperparams):
-    env = gym.make("LunarLander-v2", render_mode="rgb_array")
-    env = RecordEpisodeStatistics(env)
-    observation, _ = env.reset(seed=42)
+    print("Training VPG with hyperparameters:", hyperparams)
 
     # load hyperparameters from hydra
     total_epochs = hyperparams.epochs
@@ -200,6 +208,9 @@ def train(hyperparams):
     )  # discount rate for rewards during returns-to-go calculation
     normalize_advantages = hyperparams.normalize_advantages
     epsilon = hyperparams.epsilon
+    entropy_coefficient = hyperparams.entropy_coeff
+    seed = hyperparams.seed
+    torch_deterministic = hyperparams.torch_deterministic
 
     policy_layers = hyperparams.policy.model.layers
     policy_orthogonal_init = hyperparams.policy.model.use_orthogonal_init
@@ -221,6 +232,15 @@ def train(hyperparams):
     RECORD_EPISODE_INTERVAL = 250
     VIDEO_DIRECTORY = "./videos/"
 
+    # TRY NOT TO MODIFY: seeding
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = torch_deterministic
+
+    env = gym.make("LunarLander-v2", render_mode="rgb_array")
+    env = RecordEpisodeStatistics(env)
+    observation, _ = env.reset(seed=seed)
+
     if RECORD_VIDEO:
         os.makedirs(os.path.dirname(VIDEO_DIRECTORY + RUN_NAME), exist_ok=True)
         env = RecordVideo(
@@ -240,7 +260,9 @@ def train(hyperparams):
 
     os.makedirs(os.path.dirname(CHECKPOINT_DIRECTORY + RUN_NAME), exist_ok=True)
 
-    policy = PolicyNN(lr=policy_learning_rate, epsilon=epsilon).to(device)
+    policy = PolicyNN(
+        lr=policy_learning_rate, epsilon=epsilon, ent_coeff=entropy_coefficient
+    ).to(device)
     # function approximation must be used here since LunarLander's observation_space is continous
     f_approximator = ValueNN(lr=value_learning_rate).to(device)
     replay_buffer = TrajectoryBuffer(gamma, normalize_advantages)
@@ -304,7 +326,7 @@ def train(hyperparams):
                         info["episode"]["r"].item(),
                         info["episode"]["l"].item(),
                     )
-                    observation, info = env.reset(seed=42)
+                    observation, info = env.reset(seed=seed)
 
                     # log end of episode info
                     total_episodes += 1
