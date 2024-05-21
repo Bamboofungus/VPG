@@ -66,9 +66,7 @@ if __name__ == "__main__":
     policy_model = PolicyNN().to(device)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "filepath", type=str, help="Path to checkpoint containing policy"
-    )
+    parser.add_argument("filepath", type=str, help="Path to model containing policy")
     parser.add_argument(
         "-episodes_to_run",
         type=int,
@@ -88,17 +86,16 @@ if __name__ == "__main__":
     record_video = args.record_video
 
     checkpoint = torch.load(filepath)
-    assert "policy_state_dict" in checkpoint, "Provided checkpoint missing policy!"
+    # assert "policy_state_dict" in checkpoint, "Provided checkpoint missing policy!"
     # hack for policy state dict not currently matching w/ PolicyNN when checkpointed
-    nn_keys = [key for key in checkpoint["policy_state_dict"]]
-    modified_keys = ["network." + key for key in nn_keys]
-    for i, key in enumerate(nn_keys):
-        checkpoint["policy_state_dict"][modified_keys[i]] = checkpoint[
-            "policy_state_dict"
-        ][key]
-        del checkpoint["policy_state_dict"][key]
-
-    policy_model.load_state_dict(checkpoint["policy_state_dict"])
+    # nn_keys = [key for key in checkpoint["policy_state_dict"]]
+    # modified_keys = ["network." + key for key in nn_keys]
+    # for i, key in enumerate(nn_keys):
+    #     checkpoint["policy_state_dict"][modified_keys[i]] = checkpoint[
+    #         "policy_state_dict"
+    #     ][key]
+    #     del checkpoint["policy_state_dict"][key]
+    policy_model.load_state_dict(torch.load("vpg.pth"))
     policy_model.eval()
 
     # print("Evaluating manually coded policy")

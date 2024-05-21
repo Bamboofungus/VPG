@@ -429,8 +429,9 @@ def train(hyperparams):
             )
 
     env.close()
-    return policy
+    return policy, run.name
 
 
 if __name__ == "__main__":
-    train()
+    policy, policy_name = train()
+    torch.save(policy, f"vpg_{policy_name}.pth")
