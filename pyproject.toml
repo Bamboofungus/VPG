@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "vpg_lunarlander"
+version = "0.1.0"
+description = "Implementation of Vanilla Policy Gradient for use on gymnasium's lunarlander_v2 environment"
+authors = ["Bamboofungus <anthony.chang1010@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false 
+
+[tool.poetry.dependencies]
+python = "^3.11"
+torch = "^2.3.0"
+gymnasium = {extras = ["box2d"], version = "0.29.1"}
+hydra-core = "^1.3.2"
+tqdm = "^4.66.4"
+wandb = "^0.17.0"
+moviepy = "^1.0.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

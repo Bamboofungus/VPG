@@ -1,0 +1,26 @@
+policy:
+  model:
+    layers:
+      - 256
+      - 256
+    use_orthogonal_init: true
+  optimizer:
+    learning_rate: 1e-2
+    anneal_lr: true
+
+value:
+  model:
+    layers:
+      - 256
+      - 256
+    use_orthogonal_init: true
+  optimizer:
+    learning_rate: 3e-3
+    anneal_lr: true
+    steps_per_epoch: 10
+
+epochs: 500
+episode_steps_per_epoch: 4000
+gamma: 0.99
+normalize_advantages: true
+epsilon: 0.05 
